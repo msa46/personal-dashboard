@@ -5,7 +5,6 @@ import numpy as np
 
 df = pd.read_csv('data/chess_games.csv')
 
-# Define the colors for the dark mode palette
 dark_mode_palette = [
     '#1f77b4',  # Muted Blue
     '#2ca02c',  # Cooked Asparagus Green
@@ -51,7 +50,7 @@ def general_report():
     final_df['CustomText'] = final_df.apply(lambda x: f"{x['opening_shorten']}: {x['count_percent']:.2f}%" if x['count_percent'] >= 1 else None, axis=1)
 
 
-    fig = px.pie(final_df, values='count_percent', names='opening_shorten')
+    fig = px.pie(final_df, values='count_percent', names='opening_shorten', title='Tactics')
 
     fig.update_traces(text=final_df['CustomText'], 
                       textinfo='text', 
@@ -59,12 +58,44 @@ def general_report():
                       marker=dict(colors=dark_mode_palette)
                       )
     fig.update_layout(
-        # width=900, 
-        height=500,  
+        height=650,
         plot_bgcolor='rgb(22,26,29)',
         paper_bgcolor='rgb(22,26,29)',
-        margin=dict(t=0, b=0, l=0, r=20),  # Reduce whitespace by adjusting margins (top, bottom, left, right)
-        legend_font_color='white'
+        margin=dict(t=50, b=15, l=10, r=20),  
+        legend_font_color='white',
+        title_font_color='white',
+    )
+
+    return fig
+
+def tactic_report():
+
+    tactic_df = df.assign(
+    opening_side = lambda x: np.where(x['opening_name'].str.contains('Defense|King\'s Indian'), 'black', 'white'),
+    tactic_worked = lambda x: np.where((x['opening_side'] == x['winner']), True, False)
+    )
+    tactic_df = tactic_df.groupby('tactic_worked').size().reset_index(name='tactic_sum')
+    tactic_df['tactic_worked_str'] = tactic_df['tactic_worked'].replace({True: 'Worked', False: 'Did Not Work'})
+
+
+    fig = px.pie(tactic_df, values='tactic_sum', names='tactic_worked_str', color='tactic_worked_str',
+                labels={'True': 'Worked', 'False': 'Did Not Work'},
+                color_discrete_map={
+                    'Did Not Work': 'darkBlue',
+                    'Worked': 'lightDarkPurple'
+                },
+                title='Used tactic result'
+                )
+                
+
+    fig.update_layout(
+        height=650,
+        plot_bgcolor='rgb(22,26,29)',
+        paper_bgcolor='rgb(22,26,29)',        
+        margin=dict(t=50, b=15, l=10, r=20),  
+        legend_font_color='white',
+        title_font_color='white',
+
     )
 
     return fig
