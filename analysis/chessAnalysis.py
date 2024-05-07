@@ -124,7 +124,6 @@ def strategy_report(selected_strategy):
                  color_discrete_sequence=custom_colors)
 
     fig.update_layout(
-        height=650,
         plot_bgcolor='rgb(22,26,29)',
         paper_bgcolor='rgb(22,26,29)',        
         margin=dict(t=50, b=15, l=10, r=20),  
@@ -136,4 +135,43 @@ def strategy_report(selected_strategy):
     )
     fig.update_xaxes(color='white', title_text= 'Opening name')
     fig.update_yaxes(color='white') 
+    return fig
+
+def winrate_to_total_report():
+    grouped_tactic = df.assign(
+        opening_side = lambda x: np.where(x['opening_name'].str.contains('Defense|King\'s Indian'), 'black', 'white'),
+        tactic_worked = lambda x: np.where((x['opening_side'] == x['winner']), True, False)
+    )
+    grouped_tactic = grouped_tactic.groupby(['opening_shorten','tactic_worked']).size().reset_index(name='per_tactic_result')
+
+    total_count = grouped_tactic.groupby('opening_shorten')['per_tactic_result'].sum()
+
+    grouped_tactic = grouped_tactic.merge(total_count, on='opening_shorten', suffixes=('', '_total'))
+    grouped_tactic['percentage'] =(grouped_tactic['per_tactic_result'] / grouped_tactic['per_tactic_result_total']) * 100 
+
+    only_wins_df = grouped_tactic[grouped_tactic['tactic_worked'] == True]
+    only_wins_df = only_wins_df.sort_values(by='percentage')
+    mean = only_wins_df['percentage'].mean()
+    std = only_wins_df['percentage'].std()
+    x_values = np.linspace(mean - 4*std, mean + 4*std, 400)
+    y_values = np.exp(-(x_values - mean)**2 / (2 * std**2)) / (std * np.sqrt(2 * np.pi))
+
+    fig = go.Figure()
+    fig.add_trace(go.Histogram(x=only_wins_df['percentage'], y=only_wins_df['per_tactic_result_total'], histnorm='probability density', name='total played vs winning%'))
+    fig.add_trace(go.Scatter(x=x_values, y=y_values, mode='lines', name='Normal Distribution'))
+
+
+    fig.update_layout(
+        height=500,
+        title='Distribution of Winning Percentages by Total Tactics Played',
+        plot_bgcolor='rgb(22,26,29)',
+        paper_bgcolor='rgb(22,26,29)',        
+        margin=dict(t=50, b=15, l=10, r=20),  
+        legend_font_color='white',
+        title_font_color='white',
+    )
+
+    fig.update_xaxes(color='white', title_text= 'Win percent')
+    fig.update_yaxes(color='white', title='ُTotal players') 
+
     return fig

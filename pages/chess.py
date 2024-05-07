@@ -2,7 +2,7 @@ import dash_mantine_components as dmc
 
 from dash import Dash, html, register_page, dcc
 
-from analysis.chessAnalysis import general_report, tactic_report
+from analysis.chessAnalysis import general_report, tactic_report, winrate_to_total_report
 
 register_page(__name__, path='/chess')
 
@@ -43,11 +43,21 @@ def build_middle_panel():
                 dmc.Card(children=[dcc.Graph(id='strategy-graph')],
                                 withBorder=True,
                                 shadow="sm",
-                                radius="md",)
+                                radius="md",
+                                w={'base': 725},)
             ],
             direction='column',
-            gap='sm'),],
-            direction='column',
+            gap='md'),
+            dmc.Card(children=[dcc.Graph(figure=winrate_to_total_report())],
+                               withBorder=True,
+                               shadow="sm",
+                               radius="md",
+                               w={'base': 725},
+                               h={'base': 535})
+            ],
+            direction='row',
+            gap='md',
+            justify='center'
             )
             
     
