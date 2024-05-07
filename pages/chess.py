@@ -26,7 +26,37 @@ def build_upper_panel():
         justify={'sm': 'center'}
     )
 
+def build_middle_panel():
+    strategy_list = ["Sicilian Defense", "French Defense", "Queen's Pawn", "Italian Game",
+                     "King's Pawn", "Queen's Gambit", "Ruy Lopez", "English Opening",
+                     "Scandinavian Defense", "Philidor Defense"
+                     ]
+    return dmc.Flex(
+        children=[
+            dmc.Flex(
+                children=[
+                dmc.Select(
+                    data=[{'label': strategy, 'value': strategy} for strategy in strategy_list],
+                    value='Sicilian Defense',
+                    id='strategy-dropdown'
+                ),
+                dmc.Card(children=[dcc.Graph(id='strategy-graph')],
+                                withBorder=True,
+                                shadow="sm",
+                                radius="md",)
+            ],
+            direction='column',
+            gap='sm'),],
+            direction='column',
+            )
+            
+    
 layout = html.Div([
     html.H1('Chess analysis'),
-    build_upper_panel()
+    dmc.Flex(children=[
+    build_upper_panel(),
+    build_middle_panel(),
+    ],
+    direction='column',
+    gap='sm',)
 ])

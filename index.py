@@ -2,7 +2,7 @@ import dash_mantine_components as dmc
 from dash import html, dcc, page_container, page_registry
 
 from app import app
-
+import callbacks
 
 app.layout = dmc.MantineProvider(
     forceColorScheme='dark',

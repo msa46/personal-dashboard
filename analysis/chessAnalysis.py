@@ -79,10 +79,9 @@ def tactic_report():
 
 
     fig = px.pie(tactic_df, values='tactic_sum', names='tactic_worked_str', color='tactic_worked_str',
-                labels={'True': 'Worked', 'False': 'Did Not Work'},
                 color_discrete_map={
-                    'Did Not Work': 'darkBlue',
-                    'Worked': 'lightDarkPurple'
+                    'Did Not Work': '#9467bd',
+                    'Worked': '#1f77b4'
                 },
                 title='Used tactic result'
                 )
@@ -98,4 +97,43 @@ def tactic_report():
 
     )
 
+    return fig
+
+def strategy_report(selected_strategy):
+    specific_df = df.assign(
+        opening_side = lambda x: np.where(x['opening_name'].str.contains('Defense|King\'s Indian'), 'black', 'white'),
+        tactic_worked = lambda x: np.where((x['opening_side'] == x['winner']), True, False)
+    )
+    specific_df = specific_df[df.opening_shorten == selected_strategy]
+    grouped_specific_df =  specific_df.groupby(['opening_name', 'tactic_worked']).size().reset_index(name='count')
+    grouped_specific_df = grouped_specific_df.sort_values(by='count', ascending=False)
+
+    total_count = grouped_specific_df.groupby('opening_name')['count'].sum()
+    grouped_specific_df = grouped_specific_df.merge(total_count, on='opening_name', suffixes=('', '_total'))
+    grouped_specific_df = grouped_specific_df.sort_values(by='count_total', ascending=False)
+    grouped_specific_df['tactic_worked_str'] = grouped_specific_df['tactic_worked'].replace({True: 'Worked', False: 'Did Not Work'})
+
+    custom_colors = ['#1f77b4', '#9467bd']
+
+    
+
+    fig = px.bar(grouped_specific_df.head(12), 
+                 x='opening_name', 
+                 y='count', 
+                 color='tactic_worked_str', 
+                 color_discrete_sequence=custom_colors)
+
+    fig.update_layout(
+        height=650,
+        plot_bgcolor='rgb(22,26,29)',
+        paper_bgcolor='rgb(22,26,29)',        
+        margin=dict(t=50, b=15, l=10, r=20),  
+        legend_font_color='white',
+        title_font_color='white',
+        legend_title_text='Tactic result'
+        
+
+    )
+    fig.update_xaxes(color='white', title_text= 'Opening name')
+    fig.update_yaxes(color='white') 
     return fig
